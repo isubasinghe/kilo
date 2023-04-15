@@ -10,8 +10,6 @@ struct state_t* state_create() {
     return NULL;
   }
   state->mode = NORMAL;
-  state->row = 0;
-  state->col = 0;
   return state;
 }
 

@@ -20,8 +20,6 @@ enum state_actions {
 
 struct state_t {
   enum editor_mode mode; 
-  int row;
-  int col;
 };
 
 struct state_t* state_create();

@@ -11,7 +11,11 @@ enum state_actions {
   NOOP,
   QUIT, 
   ENTER_INSERT, 
-  ENTER_NORMAL
+  ENTER_NORMAL, 
+  MOVE_UP, 
+  MOVE_DOWN, 
+  MOVE_LEFT, 
+  MOVE_RIGHT
 };
 
 struct state_t {

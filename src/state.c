@@ -37,6 +37,18 @@ int state_handle_input(struct state_t *state, int chr, struct state_action_t *ac
       case 'i':
         action->action = ENTER_INSERT;
         break;
+      case 'k':
+        action->action = MOVE_UP;
+        break;
+      case 'j':
+        action->action = MOVE_DOWN;
+        break;
+      case 'h':
+        action->action = MOVE_LEFT;
+        break;
+      case 'l':
+        action->action = MOVE_RIGHT;
+        break;
     }
   }
 

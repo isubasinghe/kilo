@@ -4,11 +4,16 @@
 #include <termio.h>
 #include <state.h>
 #include <win.h>
+#include <abuf.h>
+#include <string.h>
 
 struct editor_context {
+  int cx;
+  int cy;
   int rows;
   int cols;
   struct state_t *state;
+  struct append_buf *abuf;
 };
 
 struct editor_context *create_editor_ctx() {
@@ -16,7 +21,19 @@ struct editor_context *create_editor_ctx() {
   get_window_sz(&ctx->rows, &ctx->cols);
   struct state_t *state = state_create();
   ctx->state = state;
+  struct append_buf *buf = create_append_buffer();
+  ctx->abuf = buf;
+  ctx->cx = 0;
+  ctx->cy = 0;
   return ctx;
+}
+
+void awrite(struct editor_context *ctx, char *data, size_t sz) {
+  int res = write_buffer(ctx->abuf, data, sz);
+  if(res < 0) {
+    perror("unable to realloc, dying\n");
+    exit(1);
+  }
 }
 
 void clear_screen(__attribute__((unused)) struct editor_context *ctx) {
@@ -27,17 +44,37 @@ void clear_screen(__attribute__((unused)) struct editor_context *ctx) {
 void draw_rows(struct editor_context *ctx) {
   int y;
   for (y = 0; y < ctx->rows; y++) {
-    write(STDOUT_FILENO, "~", 1);
+  if (y == ctx->rows/ 3) {
+      char welcome[80];
+      int welcomelen = snprintf(welcome, sizeof(welcome),
+        "Kilo editor -- version %s","0.0.1");
+      if (welcomelen > ctx->cols) welcomelen = ctx->cols;
+      int padding = (ctx->cols - welcomelen) / 2;
+      if (padding) {
+        awrite(ctx, "~", 1);
+        padding--;
+      }
+      while (padding--) awrite(ctx, " ", 1);
+      awrite(ctx, welcome, welcomelen);
+    } else {
+      awrite(ctx, "~", 1);
+    }
+    awrite(ctx, "\x1b[K", 3);
     if (y < ctx->rows - 1) {
-      write(STDOUT_FILENO, "\r\n", 2);
+      awrite(ctx, "\r\n", 2);
     }
   }
 }
 
 void refresh_screen(struct editor_context *ctx) {
-  clear_screen(ctx); 
+  awrite(ctx, "\x1b[?25l", 6);
+  awrite(ctx, "\x1b[H", 3);
   draw_rows(ctx);
-  write(STDOUT_FILENO, "\x1b[H", 3);
+  char buf[32];
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", ctx->cy + 1, ctx->cx + 1);
+  awrite(ctx, buf, strlen(buf));
+  awrite(ctx, "\x1b[?25h", 6);
+  write_fd(ctx->abuf, STDOUT_FILENO); 
 }
 
 int main() {
@@ -65,17 +102,26 @@ int main() {
       case QUIT:
         goto exit_loop;
       case INSERT_CHAR:
-        printf("%d ('%c') \r\n", action.chr, action.chr);
         break;
       case NOOP:
         break;
       case ENTER_INSERT:
         ctx->state->mode = INSERT;
-        printf("SWITCHING TO INSERT\r\n");
         break;
       case ENTER_NORMAL:
         ctx->state->mode = NORMAL;
-        printf("SWITCHING TO NORMAL\r\n");
+        break;
+      case MOVE_UP:
+        ctx->cy = ctx->cy - 1;
+        break;
+      case MOVE_DOWN:
+        ctx->cy = ctx->cy + 1;
+        break;
+      case MOVE_LEFT:
+        ctx->cx = ctx->cx - 1;
+        break;
+      case MOVE_RIGHT:
+        ctx->cx = ctx->cx + 1;
         break;
     } 
     // reset state

@@ -24,9 +24,8 @@ int write_buffer(struct append_buf *buf, char *new_data, size_t sz) {
     buf->cap = buf->cap * 2;
   }
 
-  buf->sz = buf->sz + sz;
   memcpy(&buf->data[buf->sz], new_data, sz);
-
+  buf->sz = buf->sz + sz;
   return 0;
 }
 

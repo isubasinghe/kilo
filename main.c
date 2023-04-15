@@ -19,7 +19,7 @@ struct editor_context *create_editor_ctx() {
   return ctx;
 }
 
-void clear_screen(struct editor_context *ctx) {
+void clear_screen(__attribute__((unused)) struct editor_context *ctx) {
   write(STDOUT_FILENO, "\x1b[2J", 4);
   write(STDOUT_FILENO, "\x1b[H", 3);
 }

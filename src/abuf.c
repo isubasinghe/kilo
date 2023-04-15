@@ -10,6 +10,7 @@ struct append_buf *create_append_buffer() {
   buf->sz = 0;
   buf->data = malloc(sizeof(char)*APPEND_BUF_INIT_SZ);
   buf->cap = APPEND_BUF_INIT_SZ;
+  return buf;
 }
 
 int write_buffer(struct append_buf *buf, char *new_data, size_t sz) {
@@ -25,20 +26,23 @@ int write_buffer(struct append_buf *buf, char *new_data, size_t sz) {
 
   buf->sz = buf->sz + sz;
   memcpy(&buf->data[buf->sz], new_data, sz);
+
+  return 0;
 }
 
-int write_fd(struct append_buf *buf, int fd) {
+ssize_t write_fd(struct append_buf *buf, int fd) {
   if(buf->sz <= 0) {
     return 0;
   }
 
-  size_t written_amount = write(fd, buf->data, buf->sz);
+  ssize_t written_amount = write(fd, buf->data, buf->sz);
   if(written_amount < 0) {
     return -1;
   }
 
   buf->sz = buf->sz - written_amount;
   memmove(buf->data, &buf->data[written_amount], written_amount); 
+  return written_amount;
 }
 
 void free_append_buffer(struct append_buf *buf) {

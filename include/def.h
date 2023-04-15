@@ -3,4 +3,6 @@
 #ifndef NULL 
 #define NULL ((void *)0)
 #endif 
+
+#include <stddef.h>
 #endif 

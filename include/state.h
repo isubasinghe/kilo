@@ -9,7 +9,9 @@ enum editor_mode {
 enum state_actions {
   INSERT_CHAR, 
   NOOP,
-  QUIT
+  QUIT, 
+  ENTER_INSERT, 
+  ENTER_NORMAL
 };
 
 struct state_t {

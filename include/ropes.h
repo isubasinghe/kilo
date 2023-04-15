@@ -8,6 +8,7 @@ struct rope_t {
 };
 
 struct rope_node_t {
+  int node;
 };
 
 

@@ -3,6 +3,8 @@
 #include <termio.h>
 #include <errors.h>
 
+static struct termios orig_termios;
+
 int termio_disable_raw_mode() {
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) < 0) {
     return ERROR_TERM_ATTR_SET;
@@ -16,6 +18,8 @@ int termio_enable_raw_mode() {
   raw.c_oflag &= ~(OPOST);
   raw.c_cflag |= (CS8);
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+  raw.c_cc[VMIN] = 0;
+  raw.c_cc[VTIME] = 1;
   if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) < 0) {
     return ERROR_TERM_ATTR_SET;
   }

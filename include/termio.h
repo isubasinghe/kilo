@@ -3,7 +3,6 @@
 
 #include <termios.h>
 
-struct termios orig_termios;
 
 int termio_disable_raw_mode();
 

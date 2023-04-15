@@ -1,3 +1,3 @@
 #include "utest.h"
 
-UTEST_MAIN();
+UTEST_MAIN()

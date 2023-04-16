@@ -1,4 +1,4 @@
-
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <win.h>
@@ -17,6 +17,9 @@ struct editor_context *create_editor_ctx() {
   ctx->abuf = buf;
   ctx->cx = 0;
   ctx->cy = 0;
+  ctx->row.sz = 0;
+  ctx->row = NULL;
+  ctx->numrows = 0;
   return ctx;
 }
 
@@ -36,25 +39,33 @@ void clear_screen(__attribute__((unused)) struct editor_context *ctx) {
 void draw_rows(struct editor_context *ctx) {
   int y;
   for (y = 0; y < ctx->rows; y++) {
-  if (y == ctx->rows/ 3) {
-      char welcome[80];
-      int welcomelen = snprintf(welcome, sizeof(welcome),
-        "Kilo editor -- version %s","0.0.1");
-      if (welcomelen > ctx->cols) welcomelen = ctx->cols;
-      int padding = (ctx->cols - welcomelen) / 2;
-      if (padding) {
+    if(y >= ctx->numrows) {
+      if (ctx->numrows == 0 && y == ctx->rows/ 3) {
+        char welcome[80];
+        int welcomelen = snprintf(welcome, sizeof(welcome),
+          "Kilo editor -- version %s","0.0.1");
+        if (welcomelen > ctx->cols) welcomelen = ctx->cols;
+        int padding = (ctx->cols - welcomelen) / 2;
+        if (padding) {
+          awrite(ctx, "~", 1);
+          padding--;
+        }
+        while (padding--) awrite(ctx, " ", 1);
+        awrite(ctx, welcome, welcomelen);
+      } else {
         awrite(ctx, "~", 1);
-        padding--;
       }
-      while (padding--) awrite(ctx, " ", 1);
-      awrite(ctx, welcome, welcomelen);
     } else {
-      awrite(ctx, "~", 1);
+      size_t len = ctx->row.sz;
+      if(len  > ctx->cols) len = ctx->cols; 
+      awrite(ctx, ctx->row.chars, len);
     }
+
     awrite(ctx, "\x1b[K", 3);
     if (y < ctx->rows - 1) {
       awrite(ctx, "\r\n", 2);
     }
+
   }
 }
 
@@ -67,4 +78,28 @@ void refresh_screen(struct editor_context *ctx) {
   awrite(ctx, buf, strlen(buf));
   awrite(ctx, "\x1b[?25h", 6);
   write_fd(ctx->abuf, STDOUT_FILENO); 
+}
+
+int editor_open(struct editor_context *ctx, char *fname) {
+  FILE *fp = fopen(fname, "r");
+  if (!fp) {
+    return -1;
+  }
+  char *line = NULL;
+  size_t linecap = 0;
+  ssize_t linelen;
+  linelen = getline(&line, &linecap, fp);
+  if (linelen != -1) {
+    while (linelen > 0 && (line[linelen - 1] == '\n' ||
+                           line[linelen - 1] == '\r'))
+      linelen--;
+    ctx->row.sz= linelen;
+    ctx->row.chars = malloc(linelen + 1);
+    memcpy(ctx->row.chars, line, linelen);
+    ctx->row.chars[linelen] = '\0';
+    ctx->numrows = 1;
+  }
+  free(line);
+  fclose(fp);
+  return 0;
 }

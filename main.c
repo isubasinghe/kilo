@@ -8,7 +8,7 @@
 #include <string.h>
 #include <editor.h>
 
-int main() {
+int main(int argc, char *argv[]) {
   if(termio_init() < 0) {
     return 1;
   }
@@ -18,6 +18,14 @@ int main() {
   }
   
   struct editor_context *ctx = create_editor_ctx();
+
+  if(argc == 2) {
+    int res = editor_open(ctx, argv[1]);
+    if(res != 0) {
+      perror("couldn't open file\n");
+      goto exit_loop;
+    }
+  }
   struct state_action_t action;
   char c;
   while (1) {

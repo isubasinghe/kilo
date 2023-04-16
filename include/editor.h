@@ -15,7 +15,7 @@ struct editor_context {
   int cols;
   struct state_t *state;
   struct append_buf *abuf;
-  struct erow row;
+  struct erow *row;
   size_t numrows;
 };
 
@@ -24,4 +24,6 @@ void awrite(struct editor_context *ctx, char *data, size_t sz);
 void clear_screen(__attribute__((unused)) struct editor_context *ctx);
 void draw_rows(struct editor_context *ctx);
 void refresh_screen(struct editor_context *ctx);
+
+int editor_open(struct editor_context *ctx, char *fname);
 #endif 

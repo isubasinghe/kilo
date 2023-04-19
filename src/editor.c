@@ -17,7 +17,6 @@ struct editor_context *create_editor_ctx() {
   ctx->abuf = buf;
   ctx->cx = 0;
   ctx->cy = 0;
-  ctx->row.sz = 0;
   ctx->row = NULL;
   ctx->numrows = 0;
   return ctx;
@@ -56,9 +55,9 @@ void draw_rows(struct editor_context *ctx) {
         awrite(ctx, "~", 1);
       }
     } else {
-      size_t len = ctx->row.sz;
-      if(len  > ctx->cols) len = ctx->cols; 
-      awrite(ctx, ctx->row.chars, len);
+      int len = ctx->row[y].sz;
+      if(len > ctx->cols) len = ctx->cols;
+      awrite(ctx, ctx->row[y].chars, len);
     }
 
     awrite(ctx, "\x1b[K", 3);

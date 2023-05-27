@@ -4,6 +4,7 @@
 #include <abuf.h>
 #include <def.h>
 #include <unistd.h>
+#include <logger.h>
 
 struct append_buf *create_append_buffer() {
   struct append_buf *buf = malloc(sizeof(struct append_buf));
@@ -14,16 +15,10 @@ struct append_buf *create_append_buffer() {
 }
 
 int write_buffer(struct append_buf *buf, char *new_data, size_t sz) {
-  if(buf->cap - sz - buf->sz  - APPEND_BUF_PAD <= 0) {
-    size_t new_cap = buf->cap * 2;
-    char *new_data = realloc(buf->data, new_cap) ;
-    if(new_data == NULL) {
-      return -1;
-    }
-
+  if(buf->sz + 128 >= buf->cap) {
+    buf->data = realloc(buf->data, sizeof(char)*(buf->cap * 2));
     buf->cap = buf->cap * 2;
   }
-
   memcpy(&buf->data[buf->sz], new_data, sz);
   buf->sz = buf->sz + sz;
   return 0;

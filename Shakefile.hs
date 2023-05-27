@@ -5,7 +5,7 @@ import Development.Shake.Util
 
 main :: IO ()
 main = shakeArgs shakeOptions {shakeFiles = "_build"} $ do
-  want ["_build/kilo", "test"]
+  want ["_build/kilo"]
 
   phony "clean" $ do
     putInfo "Cleaning files in _build"
@@ -31,6 +31,7 @@ main = shakeArgs shakeOptions {shakeFiles = "_build"} $ do
     
   "_build/kilo" %> \out -> do 
     cs <- getDirectoryFiles "" ["src//*.c"]
+    need ("main.c":cs)
     let os = ["_build" </> c -<.> "o" | c <- cs]
     need os
     cmd_ "gcc -I./include -Wall -Wextra -pedantic -std=c11 -O3 main.c" os "-o" [out]

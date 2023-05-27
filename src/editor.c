@@ -60,9 +60,10 @@ void draw_rows(struct editor_context *ctx) {
         awrite(ctx, "~", 1);
       }
     } else {
-      int len = ctx->row[filerow].sz;
+      int len = ctx->row[filerow].sz - ctx->coloff;
+      if(len < 0) len = 0;
       if(len > ctx->cols) len = ctx->cols;
-      awrite(ctx, ctx->row[filerow].chars, len);
+      awrite(ctx, &(ctx->row[filerow].chars[ctx->coloff]), len);
     }
 
     awrite(ctx, "\x1b[K", 3);
@@ -80,6 +81,13 @@ void editor_scroll(struct editor_context *ctx) {
   if(ctx->cy >= ctx->rowoff + ctx->rows) {
     ctx->rowoff = ctx->cy - ctx->rows + 1;
   }
+
+  if(ctx->cx < ctx->coloff) {
+    ctx->coloff = ctx->cx;
+  }
+  if(ctx->cx >= ctx->coloff + ctx->cols) {
+    ctx->coloff = ctx->cx - ctx->cols + 1;
+  }
 }
 void refresh_screen(struct editor_context *ctx) {
   editor_scroll(ctx);
@@ -87,7 +95,7 @@ void refresh_screen(struct editor_context *ctx) {
   awrite(ctx, "\x1b[H", 3);
   draw_rows(ctx);
   char buf[32];
-  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", ctx->cy + 1, ctx->cx + 1);
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (ctx->cy - ctx->rowoff)+ 1, (ctx->cx - ctx->coloff) + 1);
   awrite(ctx, buf, strlen(buf));
   awrite(ctx, "\x1b[?25h", 6);
   write_fd(ctx->abuf, STDOUT_FILENO); 

@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
     if(read(STDIN_FILENO, &c, 1) < 0) {
       continue;
     } 
+    struct erow *curr_row = (ctx->cy >= ctx->numrows) ? NULL : &(ctx->row[ctx->cy]);
     // GET INPUT 
     state_handle_input(ctx->state, c, &action);
     // PROCESS ACTION
@@ -62,18 +63,25 @@ int main(int argc, char *argv[]) {
         ctx->state->mode = NORMAL;
         break;
       case MOVE_UP:
-        ctx->cy = ctx->cy - 1;
+        if(ctx->cy > 0) {
+          ctx->cy = ctx->cy - 1;
+        }
         break;
       case MOVE_DOWN:
-        ctx->cy = ctx->cy + 1;
+        if(ctx->cy < ctx->numrows) {
+          ctx->cy = ctx->cy + 1;
+        }
         break;
-      case MOVE_LEFT:
+      case MOVE_LEFT: 
         ctx->cx = ctx->cx - 1;
         break;
       case MOVE_RIGHT:
-        ctx->cx = ctx->cx + 1;
+        if(curr_row && ctx->cx < curr_row->sz) {
+          ctx->cx = ctx->cx + 1;
+        }
         break;
     } 
+    // TODO: correct cy
     // reset state
     c = -1;
   }

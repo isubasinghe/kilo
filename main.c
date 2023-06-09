@@ -73,7 +73,9 @@ int main(int argc, char *argv[]) {
         }
         break;
       case MOVE_LEFT: 
-        ctx->cx = ctx->cx - 1;
+        if (ctx->cx > 0) {
+          ctx->cx = ctx->cx - 1;
+        }
         break;
       case MOVE_RIGHT:
         if(curr_row && ctx->cx < curr_row->sz) {
@@ -81,6 +83,13 @@ int main(int argc, char *argv[]) {
         }
         break;
     } 
+    /* Imagine there exist a long line, the user can now go down to a shorter 
+     * line and mess up the cursor. This resets the cursor after a move */
+    curr_row = (ctx->cy >= ctx->numrows) ? NULL : &(ctx->row[ctx->cy]);
+    int rowlen = curr_row ? curr_row->sz : 0;
+    if(ctx->cx > rowlen) {
+      ctx->cx = rowlen;
+    }
     // TODO: correct cy
     // reset state
     c = -1;
